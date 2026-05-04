@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>International Expansion ROI Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0d1b2a; --navy-mid: #162638; --navy-light: #1e3248;
+      --teal: #0e7c7b; --teal-light: #12a89d;
+      --gold: #e8a838; --gold-light: #f5c96b;
+      --cream: #f4f6f9; --muted: #7a8899; --border: #e2e8f0; --text: #1a2b3c;
+    }
+    body { background: var(--cream); font-family: 'DM Sans', sans-serif; color: var(--text); min-height: 100vh; }
+
+    /* HEADER */
+    header { background: var(--navy); padding: 22px 40px; display: flex; align-items: center; gap: 18px; }
+    .logo-box { width: 42px; height: 42px; background: var(--teal); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'DM Serif Display', serif; font-size: 16px; color: white; flex-shrink: 0; }
+    .header-text h1 { font-family: 'DM Serif Display', serif; font-size: 19px; color: white; }
+    .header-text p { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+
+    /* PROSPECT BAR */
+    .prospect-bar { background: white; border-bottom: 1px solid var(--border); padding: 14px 40px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .prospect-field { display: flex; align-items: center; gap: 10px; }
+    .prospect-field label { font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+    .prospect-field input[type="text"] { border: 1.5px solid var(--border); border-radius: 8px; padding: 7px 13px; font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; transition: border-color 0.2s; }
+    .prospect-field input[type="text"]:focus { border-color: var(--teal); }
+    #prospectName { width: 220px; }
+    #prospectURL  { width: 240px; }
+    .url-note { font-size: 11px; color: var(--muted); font-style: italic; }
+    .divider-dot { color: var(--border); font-size: 20px; }
+
+    .container { max-width: 980px; margin: 0 auto; padding: 32px 24px 60px; }
+
+    /* HERO — dark card with revenue numbers + chart */
+    .revenue-hero { background: var(--navy); border-radius: 18px; overflow: hidden; margin-bottom: 28px; }
+
+    .hero-top { padding: 20px 32px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.07); flex-wrap: wrap; gap: 10px; }
+    .hero-top h2 { font-family: 'DM Serif Display', serif; font-size: 17px; color: white; }
+    .company-pill { background: var(--teal); color: white; font-size: 11px; font-weight: 500; padding: 4px 13px; border-radius: 20px; }
+
+    /* Numbers + chart side by side */
+    .hero-body { display: grid; grid-template-columns: 320px 1fr; }
+
+    .hero-numbers { padding: 0; border-right: 1px solid rgba(255,255,255,0.07); display: flex; flex-direction: column; }
+    .rev-block { padding: 26px 32px; flex: 1; }
+    .rev-block + .rev-block { border-top: 1px solid rgba(255,255,255,0.07); }
+    .rev-block .period { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 8px; }
+    .rev-block .amount { font-family: 'DM Serif Display', serif; font-size: 42px; color: var(--gold); line-height: 1; margin-bottom: 5px; }
+    .rev-block .sub { font-size: 11px; color: rgba(255,255,255,0.3); }
+
+    /* Chart lives inside hero */
+    .hero-chart { padding: 24px 28px 16px; display: flex; flex-direction: column; }
+    .hero-chart-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 16px; }
+
+    /* Insight strip */
+    .hero-insight { padding: 14px 32px; border-top: 1px solid rgba(255,255,255,0.07); font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+    .hero-insight span { color: var(--gold-light); font-weight: 500; }
+
+    /* INPUT TABLE */
+    .input-section { background: white; border-radius: 18px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 28px; }
+    .section-header { background: var(--navy-mid); padding: 13px 24px; font-family: 'DM Serif Display', serif; font-size: 15px; color: white; display: flex; align-items: center; gap: 10px; }
+    .col-header { display: grid; grid-template-columns: 1fr 160px 1fr; padding: 8px 24px; background: #f8fafc; border-bottom: 1px solid var(--border); }
+    .col-header span { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .col-header span:nth-child(2) { text-align: right; }
+    .col-header span:nth-child(3) { padding-left: 20px; }
+
+    .data-row { display: grid; grid-template-columns: 1fr 160px 1fr; align-items: center; padding: 0 24px; border-bottom: 1px solid var(--border); min-height: 64px; }
+    .data-row:last-child { border-bottom: none; }
+    .row-label { font-size: 14px; font-weight: 500; color: var(--text); padding: 14px 0; }
+    .row-label .hint { font-size: 12px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+    .row-input { display: flex; justify-content: flex-end; align-items: center; padding: 10px 0 10px 16px; }
+    .input-wrap { position: relative; display: flex; align-items: center; }
+    .prefix, .suffix { position: absolute; font-size: 13px; font-weight: 500; color: var(--muted); pointer-events: none; }
+    .prefix { left: 10px; } .suffix { right: 10px; }
+    input[type="number"] { border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 30px 8px 12px; font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); width: 130px; outline: none; transition: border-color 0.2s; text-align: right; -moz-appearance: textfield; }
+    input[type="number"].with-prefix { padding-left: 22px; }
+    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus { border-color: var(--teal); }
+
+    .row-result { display: flex; align-items: center; gap: 12px; padding: 10px 0 10px 20px; }
+    .calc-num { font-size: 17px; font-weight: 600; color: var(--teal); white-space: nowrap; }
+    .calc-num.dim { color: var(--muted); font-size: 14px; font-weight: 400; }
+    .calc-label-text { font-size: 12px; color: var(--muted); line-height: 1.4; }
+    .mini-bar { height: 4px; background: #e8edf3; border-radius: 2px; overflow: hidden; width: 70px; margin-top: 4px; }
+    .mini-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--teal-light)); border-radius: 2px; transition: width 0.4s ease; }
+
+    /* EXPORT FOOTER */
+    .export-footer { background: white; border-radius: 18px; border: 1px solid var(--border); padding: 24px 32px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .export-footer-text h3 { font-family: 'DM Serif Display', serif; font-size: 16px; color: var(--navy); margin-bottom: 4px; }
+    .export-footer-text p { font-size: 13px; color: var(--muted); }
+    .btn-export { background: var(--navy); color: white; border: none; border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+    .btn-export:hover { background: var(--teal); }
+
+    @media (max-width: 720px) {
+      header { padding: 18px 20px; }
+      .prospect-bar { padding: 12px 20px; }
+      #prospectName, #prospectURL { width: 100%; }
+      .container { padding: 20px 14px 40px; }
+      .hero-body { grid-template-columns: 1fr; }
+      .hero-numbers { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); flex-direction: row; }
+      .rev-block + .rev-block { border-top: none; border-left: 1px solid rgba(255,255,255,0.07); }
+      .data-row, .col-header { grid-template-columns: 1fr 140px; }
+      .row-result { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-box">IE</div>
+  <div class="header-text">
+    <h1>International Expansion ROI Calculator</h1>
+    <p>Estimate your global revenue potential from existing web traffic</p>
+  </div>
+</header>
+
+<!-- PROSPECT BAR: company name + website -->
+<div class="prospect-bar">
+  <div class="prospect-field">
+    <label>Company Name</label>
+    <input type="text" id="prospectName" placeholder="e.g. Acme Global Inc." oninput="calculate()">
+  </div>
+  <div class="divider-dot">·</div>
+  <div class="prospect-field">
+    <label>Website</label>
+    <input type="text" id="prospectURL" placeholder="e.g. acmeglobal.com">
+  </div>
+  <span class="url-note">Enter traffic data from your analytics below</span>
+</div>
+
+<div class="container">
+
+  <!-- COMBINED HERO: revenue numbers + chart -->
+  <div class="revenue-hero">
+    <div class="hero-top">
+      <h2>International Revenue Opportunity</h2>
+      <div class="company-pill" id="company_pill">Your Company</div>
+    </div>
+
+    <div class="hero-body">
+      <!-- Left: numbers -->
+      <div class="hero-numbers">
+        <div class="rev-block">
+          <div class="period">Monthly Potential</div>
+          <div class="amount" id="monthly_rev">$0</div>
+          <div class="sub" id="monthly_sub">Enter your data below</div>
+        </div>
+        <div class="rev-block">
+          <div class="period">Annual Potential</div>
+          <div class="amount" id="annual_rev">$0</div>
+          <div class="sub" id="annual_sub">Projected over 12 months</div>
+        </div>
+      </div>
+
+      <!-- Right: chart -->
+      <div class="hero-chart">
+        <div class="hero-chart-label">Monthly vs. Annual Revenue — Visual Comparison</div>
+        <svg id="rev_chart" viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;flex:1;">
+          <g id="chart_grid"></g>
+          <g id="chart_bars"></g>
+          <g id="chart_labels"></g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="hero-insight">
+      <span id="insight_text">Fill in the inputs below to see your international revenue opportunity.</span>
+    </div>
+  </div>
+
+  <!-- INPUT TABLE -->
+  <div class="input-section">
+    <div class="section-header">📊 Traffic, Audience &amp; Revenue Inputs</div>
+    <div class="col-header">
+      <span>Data Point</span>
+      <span>Your Input</span>
+      <span style="padding-left:20px;">Calculated Result</span>
+    </div>
+
+    <div class="data-row">
+      <div class="row-label">Monthly Web Traffic<div class="hint">Total visitors to your site per month</div></div>
+      <div class="row-input"><div class="input-wrap"><input type="number" id="c4" min="0" value="100000" oninput="calculate()"></div></div>
+      <div class="row-result"></div>
+    </div>
+
+    <div class="data-row">
+      <div class="row-label">Bounce Rate<div class="hint">% of visitors who leave without engaging</div></div>
+      <div class="row-input"><div class="input-wrap"><input type="number" id="c6" min="0" max="100" step="0.1" value="45" oninput="calculate()"><span class="suffix">%</span></div></div>
+      <div class="row-result">
+        <div><div class="calc-num" id="c8_val">55,000</div><div class="mini-bar"><div class="mini-fill" id="bar_c8" style="width:55%"></div></div></div>
+        <div class="calc-label-text">Interested<br>Buyers</div>
+      </div>
+    </div>
+
+    <div class="data-row">
+      <div class="row-label">Domestic Traffic<div class="hint">% of your traffic from your home market</div></div>
+      <div class="row-input"><div class="input-wrap"><input type="number" id="c10" min="0" max="100" step="0.1" value="70" oninput="calculate()"><span class="suffix">%</span></div></div>
+      <div class="row-result">
+        <div><div class="calc-num" id="c12_val">16,500</div><div class="mini-bar"><div class="mini-fill" id="bar_c12" style="width:17%"></div></div></div>
+        <div class="calc-label-text">Prospective International<br>Buyers</div>
+      </div>
+    </div>
+
+    <div class="data-row">
+      <div class="row-label">Average Hit Rate<div class="hint">% of interested visitors who actually purchase</div></div>
+      <div class="row-input"><div class="input-wrap"><input type="number" id="c14" min="0" max="100" step="0.1" value="3" oninput="calculate()"><span class="suffix">%</span></div></div>
+      <div class="row-result">
+        <div><div class="calc-num" id="c16_val">495</div><div class="mini-bar"><div class="mini-fill" id="bar_c16" style="width:3%"></div></div></div>
+        <div class="calc-label-text">Serious International<br>Buyers</div>
+      </div>
+    </div>
+
+    <div class="data-row">
+      <div class="row-label">Average Order Value<div class="hint">Average revenue earned per sale</div></div>
+      <div class="row-input"><div class="input-wrap"><span class="prefix">$</span><input type="number" id="c18" min="0" step="0.01" value="85" oninput="calculate()" class="with-prefix"></div></div>
+      <div class="row-result">
+        <div class="calc-num dim" id="aov_echo">$85.00</div>
+        <div class="calc-label-text">Per Sale</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPORT FOOTER -->
+  <div class="export-footer">
+    <div class="export-footer-text">
+      <h3>Export Your Summary</h3>
+      <p>Download a formatted summary of all inputs and results to share with your team.</p>
+    </div>
+    <button class="btn-export" onclick="exportSummary()">⬇ Download Export Summary</button>
+  </div>
+
+</div><!-- end container -->
+
+<script>
+  function fmt(n)  { return '$' + Math.round(n).toLocaleString('en-US'); }
+  function fmtN(n) { return Math.round(n).toLocaleString('en-US'); }
+  function fmtD(n) { return '$' + Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  function drawChart(monthly, annual) {
+    const svg  = document.getElementById('rev_chart');
+    const grid = document.getElementById('chart_grid');
+    const bars = document.getElementById('chart_bars');
+    const lbls = document.getElementById('chart_labels');
+    grid.innerHTML = ''; bars.innerHTML = ''; lbls.innerHTML = '';
+    svg.querySelectorAll('defs').forEach(d => d.remove());
+
+    const W=500, H=200, padL=60, padR=20, padT=28, padB=48;
+    const chartW=W-padL-padR, chartH=H-padT-padB;
+    const maxVal = Math.max(monthly, annual, 1) * 1.3;
+
+    // gridlines
+    for (let i=0; i<=4; i++) {
+      const y   = padT + chartH - (i/4)*chartH;
+      const val = maxVal * i/4;
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',padL); line.setAttribute('x2',W-padR);
+      line.setAttribute('y1',y); line.setAttribute('y2',y);
+      line.setAttribute('stroke','rgba(255,255,255,0.08)'); line.setAttribute('stroke-width','1');
+      grid.appendChild(line);
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x',padL-8); t.setAttribute('y',y+4);
+      t.setAttribute('text-anchor','end'); t.setAttribute('font-size','9');
+      t.setAttribute('fill','rgba(255,255,255,0.3)'); t.setAttribute('font-family','DM Sans,sans-serif');
+      t.textContent = val>=1000000?'$'+(val/1000000).toFixed(1)+'M':val>=1000?'$'+(val/1000).toFixed(0)+'k':'$'+Math.round(val);
+      grid.appendChild(t);
+    }
+    // baseline
+    const base = document.createElementNS('http://www.w3.org/2000/svg','line');
+    base.setAttribute('x1',padL); base.setAttribute('x2',W-padR);
+    base.setAttribute('y1',padT+chartH); base.setAttribute('y2',padT+chartH);
+    base.setAttribute('stroke','rgba(255,255,255,0.15)'); base.setAttribute('stroke-width','1');
+    grid.appendChild(base);
+
+    const barData = [
+      {label:'Monthly',  val:monthly, c1:'#0e7c7b', c2:'#1fc4b8'},
+      {label:'Annual',   val:annual,  c1:'#c47d0a', c2:'#f5c96b'}
+    ];
+    const barW=80, gap=chartW/3, startX=padL+gap-barW/2;
+
+    barData.forEach((d,i) => {
+      const bH = Math.max((d.val/maxVal)*chartH, d.val>0?3:0);
+      const bX = startX+i*gap;
+      const bY = padT+chartH-bH;
+      const gid='hg'+i;
+
+      const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+      const grad = document.createElementNS('http://www.w3.org/2000/svg','linearGradient');
+      grad.setAttribute('id',gid); grad.setAttribute('x1','0'); grad.setAttribute('y1','0'); grad.setAttribute('x2','0'); grad.setAttribute('y2','1');
+      const s1=document.createElementNS('http://www.w3.org/2000/svg','stop'); s1.setAttribute('offset','0%'); s1.setAttribute('stop-color',d.c2);
+      const s2=document.createElementNS('http://www.w3.org/2000/svg','stop'); s2.setAttribute('offset','100%'); s2.setAttribute('stop-color',d.c1);
+      grad.appendChild(s1); grad.appendChild(s2); defs.appendChild(grad);
+      svg.insertBefore(defs, svg.firstChild);
+
+      const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+      rect.setAttribute('x',bX); rect.setAttribute('y',bY);
+      rect.setAttribute('width',barW); rect.setAttribute('height',bH);
+      rect.setAttribute('rx','6'); rect.setAttribute('fill','url(#'+gid+')');
+      bars.appendChild(rect);
+
+      if (d.val>0) {
+        const vt=document.createElementNS('http://www.w3.org/2000/svg','text');
+        vt.setAttribute('x',bX+barW/2); vt.setAttribute('y',bY-8);
+        vt.setAttribute('text-anchor','middle'); vt.setAttribute('font-size','11');
+        vt.setAttribute('font-weight','600'); vt.setAttribute('fill',d.c2);
+        vt.setAttribute('font-family','DM Sans,sans-serif');
+        vt.textContent = fmt(d.val);
+        lbls.appendChild(vt);
+      }
+
+      const xt=document.createElementNS('http://www.w3.org/2000/svg','text');
+      xt.setAttribute('x',bX+barW/2); xt.setAttribute('y',padT+chartH+16);
+      xt.setAttribute('text-anchor','middle'); xt.setAttribute('font-size','11');
+      xt.setAttribute('font-weight','600'); xt.setAttribute('fill','rgba(255,255,255,0.7)');
+      xt.setAttribute('font-family','DM Sans,sans-serif');
+      xt.textContent=d.label;
+      lbls.appendChild(xt);
+
+      const st=document.createElementNS('http://www.w3.org/2000/svg','text');
+      st.setAttribute('x',bX+barW/2); st.setAttribute('y',padT+chartH+30);
+      st.setAttribute('text-anchor','middle'); st.setAttribute('font-size','9');
+      st.setAttribute('fill','rgba(255,255,255,0.3)'); st.setAttribute('font-family','DM Sans,sans-serif');
+      st.textContent='Revenue Potential';
+      lbls.appendChild(st);
+    });
+  }
+
+  function calculate() {
+    const c4  = parseFloat(document.getElementById('c4').value)  || 0;
+    const c6  = parseFloat(document.getElementById('c6').value)  || 0;
+    const c10 = parseFloat(document.getElementById('c10').value) || 0;
+    const c14 = parseFloat(document.getElementById('c14').value) || 0;
+    const c18 = parseFloat(document.getElementById('c18').value) || 0;
+
+    const c8      = c4  * (1 - c6/100);
+    const c12     = c8  * (1 - c10/100);
+    const c16     = c12 * (c14/100);
+    const monthly = c16 * c18;
+    const annual  = monthly * 12;
+    const pct     = n => c4>0 ? Math.min((n/c4)*100,100) : 0;
+
+    // table calculated cells
+    document.getElementById('c8_val').textContent   = fmtN(c8);
+    document.getElementById('c12_val').textContent  = fmtN(c12);
+    document.getElementById('c16_val').textContent  = fmtN(c16);
+    document.getElementById('aov_echo').textContent = fmtD(c18);
+    document.getElementById('bar_c8').style.width   = Math.max(pct(c8),  2)+'%';
+    document.getElementById('bar_c12').style.width  = Math.max(pct(c12), 2)+'%';
+    document.getElementById('bar_c16').style.width  = Math.max(pct(c16)*8, 2)+'%';
+
+    // hero numbers
+    document.getElementById('monthly_rev').textContent = fmt(monthly);
+    document.getElementById('annual_rev').textContent  = fmt(annual);
+    document.getElementById('monthly_sub').textContent = fmtN(c16)+' buyers x '+fmtD(c18)+' avg order';
+    document.getElementById('annual_sub').textContent  = fmt(monthly)+'/mo x 12 months';
+
+    const name = document.getElementById('prospectName').value.trim() || 'Your Company';
+    document.getElementById('company_pill').textContent = name;
+
+    document.getElementById('insight_text').innerHTML = monthly > 0
+      ? fmtN(c12)+' international visitors show genuine purchase intent each month. At your current hit rate, that translates to <span>'+fmtN(c16)+' buyers/month</span> — unlocking up to <span>'+fmt(annual)+'</span> in potential annual revenue.'
+      : 'Fill in the inputs above to see your international revenue opportunity.';
+
+    drawChart(monthly, annual);
+  }
+
+  function exportSummary() {
+    const c4  = parseFloat(document.getElementById('c4').value)  || 0;
+    const c6  = parseFloat(document.getElementById('c6').value)  || 0;
+    const c10 = parseFloat(document.getElementById('c10').value) || 0;
+    const c14 = parseFloat(document.getElementById('c14').value) || 0;
+    const c18 = parseFloat(document.getElementById('c18').value) || 0;
+    const c8  = c4*(1-c6/100), c12=c8*(1-c10/100), c16=c12*(c14/100);
+    const monthly=c16*c18, annual=monthly*12;
+    const name = document.getElementById('prospectName').value.trim() || 'Prospect';
+    const url  = document.getElementById('prospectURL').value.trim()  || 'N/A';
+    const date = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+    const txt =
+`INTERNATIONAL EXPANSION ROI SUMMARY
+=====================================
+Company:  ${name}
+Website:  ${url}
+Date:     ${date}
+
+INPUTS
+------
+Monthly Web Traffic:    ${fmtN(c4)}
+Bounce Rate:            ${c6}%
+Domestic Traffic:       ${c10}%
+Average Hit Rate:       ${c14}%
+Average Order Value:    ${fmtD(c18)}
+
+AUDIENCE FUNNEL
+---------------
+Monthly Visitors:                   ${fmtN(c4)}
+Interested Buyers:                  ${fmtN(c8)}
+Prospective International Buyers:   ${fmtN(c12)}
+Serious International Buyers:       ${fmtN(c16)}
+
+REVENUE OPPORTUNITY
+-------------------
+Monthly Potential:   ${fmt(monthly)}
+Annual Potential:    ${fmt(annual)}
+
+---
+AI International Expansion ROI Calculator`;
+
+    const blob=new Blob([txt],{type:'text/plain'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`Intl_ROI_${name.replace(/\s+/g,'_')}.txt`;
+    a.click();
+  }
+
+  calculate();
+</script>
+</body>
+</html>
